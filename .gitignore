@@ -1,0 +1,10 @@
+.java4unix
+.miapita
+.project
+bin/
+build/
+doc/javadoc/
+miapita.conf
+pom.xml
+
+
