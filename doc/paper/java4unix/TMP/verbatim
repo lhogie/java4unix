@@ -1,0 +1,7 @@
+
+<tex2html_mydb_mark>#1#%\usepackage{hyperref}
+
+<tex2html_mydb_mark>#2#%\newcommand{\codeblock}[1]{\begin{lstlisting}#1\end{lstlisting}}
+
+<tex2html_mydb_mark>#3#
+#Debug:

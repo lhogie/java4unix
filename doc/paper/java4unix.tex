@@ -1,0 +1,500 @@
+\documentclass[a4paper]{article}
+\usepackage{xspace}
+
+\usepackage{url}
+%\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{color}
+\newcommand{\jfu}{\texttt{java4unix}\xspace}
+\newcommand{\stderr}{\textit{stderr}\xspace}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\epr}{\jfu releaser\xspace}
+\usepackage{listings}
+
+\definecolor{ornge}{RGB}{230,230,230}
+\lstset{
+basicstyle=\footnotesize, 
+backgroundcolor=\color{ornge}, 
+numbers=left
+}
+
+%\newcommand{\codeblock}[1]{\begin{lstlisting}#1\end{lstlisting}}
+
+
+\newcommand{\jfuw}{http://www-sop.inria.fr/members/Luc.Hogie/java4unix}
+ 
+\title{\jfu: a solution for integrating Java into the UNIX environment}
+\author{Luc Hogie \\ \textit{INRIA/CNRS/Universit\'e de Nice-Sophia Antipolis}}
+
+
+\begin{document}
+
+\maketitle
+
+\vfill
+\begin{abstract}
+Beneath its inherent strengths, for the sake of its cross-platform character, Java was never offered a proper integration into operating systems. In particular in UNIX, the sole way to run a Java program is to explicitely invoke the JVM with the main class of the application as an argument. Worse, for this to work, the path to classes must have priorly been set by hand as pointing to the correct JAR files. In addition to this problem of poor integration, Java's API, though very rich, has no shortcuts to common operations. Then writing simple programs in Java often requires long coding.
+As a consequence programmers are reluctant to use Java as a programming language for UNIX. Most often they rather opt for bash, Python, C/C++, Perl, TCL, etc.
+
+Java4unix comes as a solution which consists in:
+\begin{itemize}
+  \item     on the developer side: a releasing tool that exports your application and all its dependancies to a website;
+  \item on the user side: an installer which downloads and installs released applications on the local computer as standard UNIX applications.  
+\end{itemize}
+    
+Additionally, an application that uses the facilities of java4unix benefits from:
+\begin{itemize}
+  \item     automatic management of the command line;
+  \item     the support of configuration files;
+  \item an API for POSIX tools from Java;
+  \item an general-purpose API allowing the fast-coding of common operations. 
+\end{itemize}
+    
+     
+\end{abstract}
+\vfill
+\newpage
+\tableofcontents
+\newpage
+
+\section{Description}
+Beneath all of its strengths and for the sake of its cross-platform character, Java was never offered a proper integration into operating systems. In particular in UNIX, the sole way to run a Java program is to explicitely invoke the JVM with the main class of the application as an argument. Worse, for this to work, the \textit{classpath} must have priorly been set by hand as pointing to the correct JAR files. In addition to this problem of poor integration, Java's API, though very rich, has no shortcuts to common operations. Then writing simple programs in Java often requires long coding.
+As a consequence programmers are reluctant to use Java as a programming language for UNIX. Most often they rather opt for bash, Python, C/C++, Perl, TCL, etc.
+
+\jfu proposes a new alternative described in this document.
+
+
+\section{Features in brief}
+\begin{itemize}
+  \item network installation of applications;
+  \item access to UNIX specificities through a Java API;
+  \item management of the command-line;
+  \item etc\ldots.
+\end{itemize}
+
+
+
+
+
+\section{Installing \jfu applications}
+ 
+A \jfu application comes in the form a ZIP archive file. To install it, you need to use one of
+the two \jfu installers:
+\begin{description}
+  \item[j4uai], the normal installer (you must have downloaded the archive before);
+  \item[j4uni], the network installer (will use the archive of the last version, which is on the web).
+\end{description}
+
+\jfu installers are shell scripts. You can download them at the following URLs:
+
+\url{http://www-sop.inria.fr/members/Luc.Hogie/java4unix/j4uai}
+
+\url{http://www-sop.inria.fr/members/Luc.Hogie/java4unix/j4nai}.
+
+Because these installers are subject to modifications/improvement, it is not recommended to download them.
+Instead, it is adviseable to use the online version throught the following command line:
+
+\subsection{Normal installation}
+
+\begin{lstlisting}
+curl -s http://www-sop.inria.fr/members/Luc.Hogie/java4unix/j4uai | sh -s zip_file
+\end{lstlisting}
+
+
+\subsection{Network instalation}
+
+
+\begin{lstlisting}
+curl -s http://www-sop.inria.fr/members/Luc.Hogie/java4unix/j4nai | sh -s application_name
+\end{lstlisting}
+
+You can get a list of registered applications at the following URL:
+\url{http://www-sop.inria.fr/members/Luc.Hogie/java4unix/db/websites/}
+
+An installer for any registered application can be produced by issuing the following command:
+\begin{lstlisting}
+echo 'curl -s http://www-sop.inria.fr/members/Luc.Hogie/java4unix/j4nai | sh -s application_name' >application_name-install.sh}
+\end{lstlisting}
+
+\subsection{Directories}
+
+If you run the installation as a normal UNIX user, the software will then be installed in the  \code{\$HOME/.\textit{name}} directory.
+The following sub-directories will be created.
+
+\begin{description}
+  \item[\code{\$HOME/.\textit{application}}]
+  \item[\code{\$HOME/.\textit{application}/lib}] is where  all the required jar files are;
+  \item[\code{\$HOME/.\textit{application}/bin}] is where all the user-invokable scripts are. This directory
+  shall be added to the \code{\$PATH} environment variable, so as the user will not have to type the full path the
+  application script every time he execute one.   
+\end{description}
+
+Classes in  \code{\textit{name}-\textit{version}.jar} that extends \code{java4unix.AbstractShellScript}
+will entail the creation of executable files in \code{\$HOME/.\textit{name}/bin/}
+
+
+
+\subsection{Installation on Cygwin}
+
+If you plan to use Java on Cygwin, you need to be aware that the JDK is not a Cygwin application but a native Windows one: it is meant in NO way to operate with Cygwin. This leads to a number of issues (location of the home dir, file/path separators, etc).
+
+This said, a \jfu application installed onto a Cygwin system will be installed in the user home directory in the sense of
+Cygwin (e.g. \code{/home/\textit{username}}).
+The user's home directory in the sense of Windows (typically \code{C:\textbackslash Documents and Settings\textbackslash \textit{username}}) is not considered.
+
+
+
+\subsection{Updating a \jfu application}
+
+To update an already installed application, run the installer again.
+
+
+\subsection{Uninstalling an \jfu application}
+
+To uninstall an  installed application, delete its root directory \texttt{\$HOME/.\textit{application}}.
+
+
+\section{The command line}
+\subsection{Definitions}
+A \textit{positional parameter} is any text that comes after the script name on the command-line.
+There exist two kinds of positional parameters:
+\begin{itemize}
+  \item An \textit{option}  is a positional parameter starting by \code{-};
+
+  \item An \textit{argument} is any positional parameter that is not an option.
+
+\end{itemize}
+
+Arguments indicates the application \textit{what} data to process,
+while options indicates the appliation \textit{how} to process it.
+
+
+\subsection{Options}
+
+
+\subsubsection{Long name and short name}
+
+
+An option is identified by it \textit{long name}. It optionally has a shortcut, referred to as its 
+\textit{long name}. The \code{--verbose} option and its \code{-v} shortcut is a common example of this.
+
+Long options are of the form \code{--}$l+$, e.g. they must start with \code{--}.
+Short options are of the form \code{-}$l$, where $l \in [a-zA-Z]$. They must start with \code{--}.
+
+
+\subsubsection{Valued options}
+
+An option might take a value.
+
+The way the value is given to an option depends on wether its long name or short name is used.
+For example, the value for a short option \code{-o} is given by \code{-o \textit{value}};
+while the value for the long option \code{--fubar}  is given be \code{--fubar=\textit{value}}.
+
+\subsubsection{Declaring an option}
+
+From the developer point of view, options are defined via  \code{java4unix.OptionSpecification} objects:
+
+\begin{lstlisting}
+new OptionSpecification(long_name, short_name,
+	value_regex, default_value, description)}
+\end{lstlisting}
+
+
+For example, the definition:
+
+\begin{lstlisting}
+new OptionSpecification("--repetitions", "-r", "[0-9]+",
+	"1", "Specifies the number of repetitions")}
+\end{lstlisting}
+
+declares a new option that can be invoked via either  \code{--repetition} or  \code{-r}, and which accept a positive
+integer as its value. If the value is not specify at runtime, the default value 1 will be considered.
+
+
+
+
+
+\subsubsection{The special case of the \code{--} option}
+The \code{--} option indicates than the following item on the command-line is not an option but an argument.
+This enables items starting by the character \code{-} to be treated as arguments.
+
+For example, consider you want to process a file whose the name starts by \code{-}. If you do not 
+use the \code{--} option, the name of the file will be considered as an option. 
+
+\subsection{Arguments}
+
+\subsection{\$0}
+
+In bash scripts, the argument \code{\$0} gives the filename containing the script.
+In \jfu this file is not mixed to the argument list. instead it is given as the first parameter to the 
+user-implemented \code{run()} method.
+
+
+
+
+\section{Configuration file}
+
+\jfu commands optionally use a configuration file located at:
+\begin{lstlisting}
+$HOME/.application/command_name.conf}
+\end{lstlisting}
+
+The syntax for the configuration file is the one of Java properties, that is
+is it a line-by-line sequence of $key=value$ pairs.
+
+This configuration file allows the same keys as the one defined by the command line.
+At startup, the values defined in the command-line override those defined in the configuration file.
+ 
+
+\section{Data files}
+
+Applications may need to store data in files. Instead of spreading files anywhere on
+the filesystem, the application should use they own file space, located in \code{\$HOME/.\textit{application}/data}.
+
+For example if you need your application to store data on the local \code{fubar.dat} file, you are advised to 
+write such a code to get a reference on the file:
+\begin{lstlisting}
+public RegularFile getFubarFile()
+{
+	return getDataFile("fubar.dat");
+}
+\end{lstlisting}
+
+
+
+
+
+\section{POSIX utility methods}
+\begin{itemize}
+	\item \code{Collection<AbstractFile> find(Directory file)}
+	\item \code{Relation<Integer, File> findFileInodes(File searchRoot)}
+	\item \code{Directory getUserHome()}
+	\item \code{String cat(RegularFile... file)}
+	\item \code{boolean isLinux()}
+	\item \code{boolean isMacOSX()}
+	\item \code{double[] getLoadAverage()}
+	\item \code{void chmod(AbstractFile file, String mode)}
+	\item \code{boolean isSymbolicLink(AbstractFile file)}
+	\item \code{String getFileUser(AbstractFile file)}
+	\item \code{String getFileGroup(AbstractFile file)}
+	\item \code{String getFilePermissions(AbstractFile file)}
+	\item \code{void makeSymbolicLink(AbstractFile source, AbstractFile link)}
+	\item \code{AbstractFile getSymbolicLinkTarget(AbstractFile symlink)}
+	\item \code{List<Directory> retrieveSystemPath()}
+	\item \code{RegularFile locateCommand(String cmd)}
+	\item \code{boolean commandIsAvailable(String name)}
+	\item \code{Map<String, RegularFile> listAvailableCommands()}
+\end{itemize}
+
+\section{Writing a basic script}
+
+At installation time, every class that extends \code{AbstractShellScript} will entail the
+generation of an executable file into  \code{\$HOME/.\textit{application}/bin}.
+
+
+\subsection{Licensing}
+
+
+\subsection{User input/output}
+
+\subsubsection{Printing to stdout}
+
+\begin{lstlisting}
+printMessage(message)}
+\end{lstlisting}
+
+\subsubsection{Printing to stderr}
+
+\begin{lstlisting}
+printWarning(message)
+\end{lstlisting}
+
+\begin{lstlisting}
+printNonFatalError(message)
+\end{lstlisting}
+
+\begin{lstlisting}
+printFatalError(message)
+\end{lstlisting}
+
+A call to the last method prints a message to the standard error
+and subsequently forces the application to stop.
+
+\begin{lstlisting}
+printDebug(message)}
+\end{lstlisting}
+
+\begin{verbatim}
+#Debug: 
+\end{verbatim}
+
+\subsubsection{Reading from stdin}
+
+\begin{lstlisting}
+readUserInput(prompt, regexp)
+\end{lstlisting}
+
+\begin{lstlisting}
+select()
+\end{lstlisting}
+
+
+
+\subsection{Error handling}
+The model for error management in \jfu is non-permissive, meaning that the application
+should not try to recover from any error. Instead it should throw an exception fed with
+an appropriate error message.
+\jfu will catch the exception at the lowest layer and prints the error message to  \stderr.
+If a message is missing, or if the \code{--Xdebug} option is set, the full exception trace gets
+printed.
+
+
+
+\section{Exporting to an installable archive}
+
+
+\epr is a tool for the releasing of Eclipse Java project. It basically creates the JAR tarballs
+and put them at the appropriate location so that the website of the project will be automatically
+updated.
+
+\subsection{Configuration}
+
+\epr needs to know where is your workspace. The default location of the workspace is the
+current directory. You can configure the workspace location by using the \code{-w} on the command line or
+by adding the following file into your \epr configuration file, located at \code{\$HOME/.java4unix-eclipse-release/epr.conf}:
+\begin{lstlisting}
+workspace=path_to_your_workspace
+\end{lstlisting}
+
+\subsection{Operation}
+
+\epr takes as input an Eclipse Java project. It computes 2 files:
+\begin{itemize}
+  \item a JAR file, which contains the bytecode of the application and, optionally, its source code;
+  \item a ZIP file, which contains the JAR file of the application as well as all the JAR files the
+  application depends one. The ZIP file is hence so-called \textit{self-contained}.
+\end{itemize}
+
+Three optional operation are then performed:
+\begin{itemize}
+  \item these two files are copied to the website of the application;
+  \item the source code is tagged into the subversion repository;
+  \item the manual of the project is optionally copied to the website of the application.
+\end{itemize}
+
+
+
+\subsection{Project settings: the .java4unix file}
+The description file for a given project is located at the root of the project, along with
+Eclipse's \code{.classpath} and \code{.project}.
+
+Its syntax uses the common paradigm $key = value$.
+Three keys have been defined, as described in the following.
+
+
+\subsubsection{Updating the website}
+The website of the project is assumed to accessible throught SSH (SCP).
+Its root website must contain a directory named \code{releases}. This is where the release will
+be copied to.
+\begin{lstlisting}
+scp_destination = location
+\end{lstlisting}
+The location is in the form \textit{host:path} where $host$ is the name (or IP address)
+of the SSH server and $path$ is the path in the filesystem heading to where the website of the
+project is located.
+
+You may optionally provide the public URL for the project. This will be used to check that
+the releasing did its job. 
+\begin{lstlisting}
+website = url
+\end{lstlisting}
+
+
+\subsubsection{Adding a download link for the last release}
+
+In order to add to the HTML page a link that refers to the last release tarball, you need to add the following PHP code:
+\begin{lstlisting}
+<a href="releases/epr-<?php include 'releases/last-version.txt'; ?>
+	.selfcontained.zip">foobar
+</a>
+\end{lstlisting}
+where $foodbar$ is the clickable text displayed by the web browser.
+
+
+\subsubsection{Tagging the SVN}
+
+If the source code of the project is stored into a subversion repository, \epr will tag it,
+meaning that it will create a time-stamped copy of the current source code into the \code{/tags}
+directory of the repository. 
+You then need to specify the following line:
+\begin{lstlisting}
+svn_repository = url
+\end{lstlisting}
+where $url$ is the URL of the root of the subversion repository.
+
+\subsubsection{Distributing the source code (or not)}
+íf the license of the project allows the distribution of the source code,
+you need to use the following key:
+\begin{lstlisting}
+source_is_public = true | false
+\end{lstlisting} 
+If the source is public, it will be embedded into the JAR file.
+
+\subsubsection{Providing documentation}
+
+
+\epr can automatically update the user manual of the project if you specify the path
+to its file, just like:
+\begin{lstlisting}
+manual = path
+\end{lstlisting}
+The file is copied at the root of the project website (where the HTML file should be)
+and its name of the file remains unchanged. You need to add the following HTML code to
+add a download link:
+\begin{lstlisting}
+<a href="my_file">Manual</a>
+\end{lstlisting}
+Where  $myfile$ is the name of the documentation file. The PDF format is strongly recommended.
+
+If you do not specify the \code{--nojavadoc} flag, \epr will generate a javadoc for
+all the classes of the projects and upload it to the  \code{javadoc} sub-directory
+of your project website. The following HTML code will add a link to the javadoc into
+your main HTML page:
+\begin{lstlisting}
+<a href="javadoc/index.html">source documentation</a>
+\end{lstlisting}
+
+\subsubsection{Example}
+
+As an exemple, take a look at the \code{.java4unix} file of the Grph project:
+
+\begin{lstlisting}
+website=http://www-sop.inria.fr/members/Luc.Hogie/grph/
+source_is_public=true
+scp_destination=mascotte.inria.fr:web/mascotte/software/grph/
+svn_repository=svn+ssh://lhogie@scm.gforge.inria.fr/svn/grph/
+manual=/home/lhogie/latex/grph/grph.pdf
+\end{lstlisting}
+
+
+\subsubsection{Obtaining information of a project}
+
+In order to get information (number of lines, paths, etc) on a given project, you can use the 
+\code{java4unix-eclipse-info} command.
+
+\subsubsection{Releasing a project}
+
+Releasing a project is done by the use of the
+\code{java4unix-eclipse-release} command. Just like \code{java4unix-eclipse-info}, \code{java4unix-eclipse-release}
+takes as argument the name of the project you want to release.
+The releasing process is entirely automatised.
+
+\subsection{Export by hand}
+
+
+The tarball called \code{\textit{name}-\textit{version}.selfcontained.zip} must contain at least an entry
+named  \code{\textit{name}-\textit{version}.jar}. You may include other jar files in the archive, these jar files will
+then be treated as dependancies.
+
+
+\end{document}

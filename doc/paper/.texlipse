@@ -1,0 +1,13 @@
+#TeXlipse project settings
+#Tue Nov 09 12:10:10 CET 2010
+builderNum=2
+outputDir=
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=tmp
+mainTexFile=java4unix.tex
+outputFile=java4unix.pdf
+langSpell=en
+markDer=true
+srcDir=
