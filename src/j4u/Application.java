@@ -1,15 +1,23 @@
-package java4unix;
+package j4u;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import toools.ClassContainer;
-import toools.ClassPath;
 import toools.io.JavaResource;
+import toools.reflect.ClassContainer;
+import toools.reflect.ClassPath;
+import toools.text.TextUtilities;
 
 public abstract class Application
 {
+	private final List<String> vmOptions = new ArrayList<>();
+
+	public List<String> getVMOptions()
+	{
+		return vmOptions;
+	}
+
 	public String getVersion()
 	{
 		JavaResource r = new JavaResource("/" + getApplicationName() + "-version.txt");
@@ -34,10 +42,6 @@ public abstract class Application
 
 	public abstract String getShortDescription();
 
-	protected List<String> getVMOptions()
-	{
-		return new ArrayList<String>();
-	}
 
 	public ClassContainer getClasspathEntry()
 	{

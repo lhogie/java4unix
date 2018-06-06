@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,7 +22,7 @@ public class CommandLineSpecification
 			}
 		}
 
-		throw new IllegalArgumentException("non existing option: " + name);
+		return null;
 	}
 
 	public Set<OptionSpecification> getOptionSpecifications()
@@ -33,6 +33,12 @@ public class CommandLineSpecification
 	public List<ArgumentSpecification> getArgumentsSpecifications()
 	{
 		return argumentSpecifications;
+	}
+
+	@Override
+	public String toString()
+	{
+		return toString(false).toString();
 	}
 
 	public StringBuffer toString(boolean printUtilityOptions)
@@ -74,7 +80,7 @@ public class CommandLineSpecification
 				}
 			}
 		}
-		
+
 		return buf;
 
 	}

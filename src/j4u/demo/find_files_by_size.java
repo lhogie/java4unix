@@ -1,18 +1,18 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.util.Collection;
 import java.util.List;
 
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
+import j4u.ArgumentSpecification;
+import j4u.CommandLine;
+import j4u.OptionSpecification;
 import toools.collections.relation.HashRelation;
 import toools.collections.relation.Relation;
 import toools.io.file.AbstractFile;
 import toools.io.file.Directory;
 import toools.io.file.RegularFile;
 
-public class find_files_by_size extends J4UScript
+public class find_files_by_size extends Java4UnixCommand
 {
 
 	public find_files_by_size(RegularFile f)
@@ -122,12 +122,7 @@ public class find_files_by_size extends J4UScript
 		return "Find files by the given size";
 	}
 
-	@Override
-	protected void declareArguments(
-			Collection<ArgumentSpecification> argumentSpecifications)
-	{
 
-	}
 
 	public static void main(String[] args) throws Throwable
 	{

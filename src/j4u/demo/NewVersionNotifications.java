@@ -1,4 +1,4 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.io.IOException;
 

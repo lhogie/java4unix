@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 import toools.util.assertion.Assertions;
 

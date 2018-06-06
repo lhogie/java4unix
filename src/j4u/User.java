@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 import java.io.File;
 import java.util.Collection;

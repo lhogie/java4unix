@@ -1,60 +1,110 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
+import j4u.CommandLine;
+import toools.extern.Proces;
+import toools.extern.ProcesException;
 import toools.io.file.RegularFile;
+import toools.spreadsheet.SpreadSheet;
 import toools.text.TextUtilities;
-import toools.thread.Threads;
+import toools.text.TextUtilities.HORIZONTAL_ALIGNMENT;
 
-public class check_servers_reacheability extends J4UScript
+public class server_monitor extends Java4UnixCommand
 {
-	public check_servers_reacheability(RegularFile f)
+	public server_monitor(RegularFile f)
 	{
 		super(f);
+		addOption("--timeout", "-t", "[0-9]+", "1000",
+				"The acceptable wait (in millisecond)");
+		addOption("--file", "-f", ".+", null, "a file containing a list of hostnames");
+		addOption("--parallel", "-p", null, null, "checks in parallel");
 	}
 
 	@Override
 	public String getShortDescription()
 	{
-		return "Checks if the given servers are accessible.";
+		return "Print information on servers";
 	}
 
-	public int runScript(CommandLine cmdLine) throws IOException
+	int row = 0;
+
+	public int runScript(CommandLine cmdLine) throws IOException, InterruptedException
 	{
+
 		final List<String> serverNames = getServerNames(cmdLine);
 		final int timeoutMs = Integer.valueOf(getOptionValue(cmdLine, "--timeout"));
-		final int port = Integer.valueOf(getOptionValue(cmdLine, "--port"));
+		List<Thread> threads = new ArrayList<>();
 
-		for (int serverIndex = 0; serverIndex < serverNames.size(); ++serverIndex)
+		SpreadSheet ss = new SpreadSheet(serverNames.size() + 2, 6);
+		ss.set(0, 0, "serverName");
+		ss.getColumnProperty(0).setWidth(40);
+		ss.getColumnProperty(0).setA(HORIZONTAL_ALIGNMENT.LEFT);
+		ss.set(0, 1, "RAM");
+		ss.getColumnProperty(1).setWidth(10);
+		ss.set(0, 2, "#cores");
+		ss.getColumnProperty(2).setWidth(10);
+		ss.set(0, 3, "Hard drive");
+		ss.getColumnProperty(3).setWidth(15);
+		ss.set(0, 4, "stress");
+		ss.getColumnProperty(4).setWidth(10);
+		ss.set(0, 5, "CPU");
+		ss.getColumnProperty(5).setWidth(100);
+
+		for (int c = 0; c < ss.getNbColumn(); ++c)
 		{
-			final String serverName = serverNames.get(serverIndex);
-			final int row = serverIndex;
+			ss.set(1, c, TextUtilities.repeat('-', ss.getColumnProperty(c).getWidth()));
+		}
 
-			new Thread()
+		boolean parallel = isOptionSpecified(cmdLine, "--parallel");
+		row = 2;
+
+		printMessage(ss.getRowAsString(0));
+		printMessage(ss.getRowAsString(1));
+
+		for (String serverName : serverNames)
+		{
+			Thread t = new Thread()
 			{
 				@Override
 				public void run()
 				{
-					System.out.println("checking " + serverNames.get(row));
-					STATUS status = serverIsAlive(serverNames.get(row), port, timeoutMs);
+					Info i = getInfo(serverName, timeoutMs);
 
-					printMessage(TextUtilities.flushLeft(serverName, 20, ' ') + "\t"
-							+ status.name());
+					synchronized (getClass())
+					{
+						if (i.values() == null)
+						{
+							System.out.println(i.serverName + " " + i.error);
+						}
+						else
+						{
+							ss.setRow(row, i.values());
+							System.out.println(ss.getRowAsString(row));
+						}
+
+						++row;
+					}
 				}
-			}.start();
+			};
+
+			threads.add(t);
+
+			if (parallel)
+				t.start();
+			else
+				t.run();
 		}
 
-		Threads.sleepForever();
+		for (Thread t : threads)
+		{
+			t.join();
+		}
+
 		return 0;
 	}
 
@@ -63,8 +113,7 @@ public class check_servers_reacheability extends J4UScript
 		if (isOptionSpecified(cmdLine, "--file"))
 		{
 			String filename = getOptionValue(cmdLine, "--file");
-			RegularFile f = new RegularFile(filename);
-			return f.getLines();
+			return new RegularFile(filename).getLines();
 		}
 		else
 		{
@@ -72,57 +121,97 @@ public class check_servers_reacheability extends J4UScript
 		}
 	}
 
-	public void declareOptions(Collection<OptionSpecification> specs)
+	static class Info
 	{
-		addOption("--port", "-p", "[0-9]+", "22", "The port to check to");
-		addOption("--timeout", "-t", "[0-9]+", "1000",
-				"The acceptable wait (in millisecond)");
-		addOption("--file", "-f", ".*", null,
-				"A file containing the list of server names to monitor");
-	}
+		final String serverName;
+		final Error error;
+		final int nbGig, nbCore;
+		final boolean ssd;
+		final String cpu;
+		final int time;
 
-	@Override
-	protected void declareArguments(
-			Collection<ArgumentSpecification> argumentSpecifications)
-	{
-	}
-
-	enum STATUS
-	{
-		UNREACHEABLE, REACHEABLE, RESPONDING
-	}
-
-	private STATUS serverIsAlive(String serverName, int port, int timeoutMs)
-	{
-		try
+		Info(String serverName, String sshOutput)
 		{
-			if ( ! InetAddress.getByName(serverName).isReachable(timeoutMs))
-				return STATUS.UNREACHEABLE;
-		}
-		catch (Exception e1)
-		{
-			return STATUS.UNREACHEABLE;
+			this.serverName = serverName;
+			String[] lines = sshOutput.split("\n");
+
+			nbGig = Integer.valueOf(
+					lines[0].replace("MemTotal:", "").replace("kB", "").trim()) / 1000000;
+			nbCore = Integer.valueOf(lines[1]);
+			ssd = lines[2].trim().equals("0");
+			cpu = lines[3].substring(lines[3].indexOf(':') + 1).trim().replaceAll(" +",
+					" ");
+			time = Integer.valueOf(lines[4]);
+			error = null;
 		}
 
+		public Info(String serverName, Error err)
+		{
+			this.serverName = serverName;
+			nbGig = nbCore = - 1;
+			ssd = false;
+			time = - 1;
+			this.cpu = null;
+			this.error = err;
+		}
+
+		public Object[] values()
+		{
+			if (error != null)
+			{
+				return null;
+			}
+			else
+			{
+				Object[] r = new Object[6];
+				r[0] = serverName;
+				r[1] = nbGig + "GB";
+				r[2] = nbCore;
+				r[3] = ssd ? "SSD" : "mechanical";
+				r[4] = time;
+				r[5] = cpu;
+				return r;
+			}
+		}
+	}
+
+	private Info getInfo(String serverName, int timeoutMs)
+	{
+		String s = "cat /proc/meminfo | grep MemTotal" + "&& nproc"
+				+ " && cat /sys/block/sda/queue/rotational"
+				+ " && cat /proc/cpuinfo | grep \"model name\" | uniq"
+				+ " && E=$(($(date +%s) + 2)); N=0; while (($(date +%s) < $E)); do N=$((N+1)); done; echo $N";
+
 		try
 		{
-			Socket s = new Socket();
-			SocketAddress ip = new InetSocketAddress(serverName, port);
-			s.connect(ip, timeoutMs);
+			String sshReply = new String(Proces.exec("ssh", "-o", "ConnectTimeout=5",
+					"-o", "PreferredAuthentications=publickey", "-o",
+					"StrictHostKeyChecking=no", serverName, s));
 
+			return new Info(serverName, sshReply);
+		}
+		catch (ProcesException e)
+		{
 			try
 			{
-				s.close();
+				if ( ! InetAddress.getByName(serverName).isReachable(timeoutMs))
+					return new Info(serverName, new Error("can't reach"));
 			}
-			catch (IOException e)
+			catch (UnknownHostException e1)
 			{
+				return new Info(serverName, new Error("unknown host"));
+			}
+			catch (IOException e1)
+			{
+				return new Info(serverName, new Error("I/O error"));
 			}
 
-			return STATUS.RESPONDING;
+			return new Info(serverName, new Error("can't connect to SSH"));
 		}
-		catch (IOException e)
-		{
-			return STATUS.REACHEABLE;
-		}
+	}
+
+	public static void main(String[] args) throws Throwable
+	{
+		new server_monitor(null).run(args);
 	}
 }

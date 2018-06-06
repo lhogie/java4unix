@@ -1,4 +1,4 @@
-package java4unix.filter;
+package j4u.filter;
 
 import java.io.BufferedReader;
 import java.io.IOException;

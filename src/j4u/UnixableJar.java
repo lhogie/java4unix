@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -6,11 +6,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Scanner;
 
-import toools.ClassContainer;
-import toools.Clazz;
 import toools.io.file.AbstractFile;
 import toools.io.file.Directory;
 import toools.io.file.RegularFile;
+import toools.reflect.ClassContainer;
+import toools.reflect.Clazz;
 
 public class UnixableJar
 {

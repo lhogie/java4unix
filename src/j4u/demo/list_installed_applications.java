@@ -1,16 +1,16 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.util.Collection;
 
+import j4u.ArgumentSpecification;
+import j4u.CommandLine;
+import j4u.OptionSpecification;
+import j4u.Utilities;
 import toools.io.file.Directory;
 import toools.io.file.RegularFile;
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
-import java4unix.Utilities;
 
 
-public class list_installed_applications extends J4UScript
+public class list_installed_applications extends Java4UnixCommand
 {
 	public list_installed_applications(RegularFile f)
 	{
@@ -22,16 +22,8 @@ public class list_installed_applications extends J4UScript
 	{
 		return "list java4unix applications on this system";
 	}
-	@Override
-	protected void declareOptions(Collection<OptionSpecification> optionSpecifications)
-	{
-	}
+	
 
-	@Override
-	protected void declareArguments(Collection<ArgumentSpecification> argumentSpecifications)
-	{
-
-	}
 	@Override
 	public int runScript(CommandLine cmdLine)
 	{

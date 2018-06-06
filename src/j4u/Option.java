@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 public class Option
 {
@@ -43,8 +43,6 @@ public class Option
 		{
 			if (v.matches(getSpecification().getValueRegexp()))
 			{
-				System.out.println(v +"=>"+ specs.getLongName());
-
 				this.value = v;
 			}
 			else

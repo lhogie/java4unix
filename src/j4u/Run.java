@@ -1,5 +1,6 @@
-package java4unix;
+package j4u;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,11 +23,13 @@ public class Run
 		}
 		catch (Throwable t)
 		{
-			// if there is no message
 			if (arguments.contains("--Xdebug") || t.getMessage() == null
 					|| t.getMessage().trim().isEmpty())
 			{
 				t.printStackTrace();
+
+				if (t.getCause() != null)
+					t.getCause().printStackTrace();
 			}
 			else
 			{
@@ -39,19 +42,25 @@ public class Run
 
 	public static int main(List<String> arguments) throws Throwable
 	{
-		if (arguments.size() == 0)
+		if (arguments.size() < 2)
 		{
 			System.err.println("Usage: java " + Run.class.getName()
-					+ " appClass triggerFile [arg1] [arg2] ... [argN]");
+					+ " appClass triggerFile [arg]...");
 			return 1;
 		}
 		else
 		{
 			String applicationClassName = arguments.remove(0);
 			Class clazz = Class.forName(applicationClassName);
-			RegularFile triggerFile = new RegularFile(arguments.remove(0));
-			CommandLineApplication script = (CommandLineApplication) clazz
-					.getConstructors()[0].newInstance(triggerFile);
+			String triggerFilename = arguments.remove(0);
+
+			RegularFile triggerFile = triggerFilename.trim().isEmpty() ? null
+					: new RegularFile(triggerFilename);
+
+			Constructor constructor = clazz
+					.getConstructor(new Class[] { RegularFile.class });
+			CommandLineApplication script = (CommandLineApplication) constructor
+					.newInstance(triggerFile);
 			return script.run(arguments);
 		}
 	}

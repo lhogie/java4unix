@@ -1,23 +1,22 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import j4u.CommandLine;
+import j4u.OptionSpecification;
 import toools.io.FileUtilities;
 import toools.io.file.RegularFile;
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
 
-
-public class InlineLatexInputs extends J4UScript
+public class InlineLatexInputs extends Java4UnixCommand
 {
 
 	public InlineLatexInputs(RegularFile f)
 	{
 		super(f);
-		// TODO Auto-generated constructor stub
+		addOption("--file", "-f", ".+", true, "LaTeX file");
+
 	}
 
 	@Override
@@ -49,20 +48,13 @@ public class InlineLatexInputs extends J4UScript
 		FileUtilities.setFileContent(file, text.getBytes());
 	}
 
-	@Override
-	protected void declareArguments(Collection<ArgumentSpecification> argumentSpecifications)
-	{
-		argumentSpecifications.add(new ArgumentSpecification("file", ".+", true, "LaTeX file"));
-
-	}
-
 	private String inline(String text) throws IOException
 	{
 		while (true)
 		{
 			int a = text.indexOf("\\input{");
 
-			if (a == -1)
+			if (a == - 1)
 			{
 				return text;
 			}
@@ -70,7 +62,7 @@ public class InlineLatexInputs extends J4UScript
 			{
 				int b = text.indexOf("}", a);
 
-				if (b == -1)
+				if (b == - 1)
 				{
 					throw new IllegalStateException("unterminated \\input{} command");
 				}
@@ -83,12 +75,13 @@ public class InlineLatexInputs extends J4UScript
 						printMessage("inputing file " + inputFileName);
 						File f = new File(inputFileName);
 
-						if (!f.exists() && !inputFileName.endsWith(".tex"))
+						if ( ! f.exists() && ! inputFileName.endsWith(".tex"))
 						{
 							f = new File(inputFileName + ".tex");
 						}
 
-						String inputFileText = new String(FileUtilities.getFileContent(f));
+						String inputFileText = new String(
+								FileUtilities.getFileContent(f));
 						String inputCmd = text.substring(a, b + 1);
 						// do not use replaceAll() because it uses regexps
 						// instead of litteral strings

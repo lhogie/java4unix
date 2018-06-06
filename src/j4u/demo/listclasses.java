@@ -1,16 +1,16 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.util.Collection;
 
-import toools.ClassContainer;
-import toools.ClassPath;
+import j4u.ArgumentSpecification;
+import j4u.CommandLine;
+import j4u.OptionSpecification;
 import toools.io.file.AbstractFile;
 import toools.io.file.RegularFile;
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
+import toools.reflect.ClassContainer;
+import toools.reflect.ClassPath;
 
-public class listclasses extends J4UScript
+public class listclasses extends Java4UnixCommand
 {
 	public listclasses(RegularFile f)
 	{
@@ -61,10 +61,4 @@ public class listclasses extends J4UScript
 		return "list the class in the given jar or directories.";
 	}
 
-	@Override
-	protected void declareArguments(
-			Collection<ArgumentSpecification> argumentSpecifications)
-	{
-
-	}
 }

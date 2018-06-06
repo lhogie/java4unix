@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 import java.util.Collection;
 import java.util.HashSet;

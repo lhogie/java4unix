@@ -1,50 +1,38 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.util.Collection;
 import java.util.HashSet;
 
-import toools.ClassContainer;
-import toools.ClassPath;
+import j4u.CommandLine;
 import toools.collections.relation.HashRelation;
 import toools.collections.relation.Relation;
 import toools.io.FileUtilities;
 import toools.io.file.AbstractFile;
 import toools.io.file.RegularFile;
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
+import toools.reflect.ClassContainer;
+import toools.reflect.ClassPath;
 
-
-public class java_classpath extends J4UScript
+public class java_classpath extends Java4UnixCommand
 {
-	
+
 	public java_classpath(RegularFile f)
 	{
 		super(f);
-		// TODO Auto-generated constructor stub
+		addOption("--list-classes", "-c", null, null, "list all classes");
+		addOption("--list-entries", "-e", null, null, "list all entries");
 	}
+
 	public static void main(String[] args) throws Throwable
 	{
 		System.out.println("coucou");
-//		new java_classpath().run("-e");
+		// new java_classpath().run("-e");
 		System.out.println(new java_classpath(null).getActualConfigurationFile());
 	}
+
 	@Override
 	public String getShortDescription()
 	{
 		return "Check classpath";
-	}
-
-	@Override
-	protected void declareOptions(Collection<OptionSpecification> optionSpecifications)
-	{
-		optionSpecifications.add(new OptionSpecification("--list-classes", "-c", null, null, "list all classes"));
-		optionSpecifications.add(new OptionSpecification("--list-entries", "-e", null, null, "list all entries"));
-	}
-
-	@Override
-	protected void declareArguments(Collection<ArgumentSpecification> argumentSpecifications)
-	{
 	}
 
 	@Override
@@ -81,14 +69,14 @@ public class java_classpath extends J4UScript
 	private void checkNonExistingEntries(ClassPath classpath)
 	{
 		for (ClassContainer e : classpath)
-		{ 
+		{
 			AbstractFile f = e.getFile();
-			
-			if (!f.exists())
+
+			if ( ! f.exists())
 			{
 				printNonFatalError("entry does not exist: " + f.getPath());
 			}
-			else if (!f.canRead())
+			else if ( ! f.canRead())
 			{
 				printNonFatalError("entry is not readable: " + f.getPath());
 			}
@@ -96,7 +84,9 @@ public class java_classpath extends J4UScript
 	}
 
 	/**
-	 * Checks if this classpath defines two entries with the same name but different content
+	 * Checks if this classpath defines two entries with the same name but
+	 * different content
+	 * 
 	 * @param classpath
 	 */
 	private void checkConflictingEntries(ClassPath classpath)
@@ -115,15 +105,16 @@ public class java_classpath extends J4UScript
 		for (String e : r.getKeys())
 		{
 			Collection<RegularFile> files = new HashSet<RegularFile>();
-			
+
 			for (ClassContainer thisEntry : new HashSet<ClassContainer>(r.getValues(e)))
 			{
 				files.add((RegularFile) thisEntry.getFile());
 			}
-			
-			if (!FileUtilities.ensureSameFile(files))
+
+			if ( ! FileUtilities.ensureSameFile(files))
 			{
-				printNonFatalError("Entry " + e + " refers to conflicting files: " + files);
+				printNonFatalError(
+						"Entry " + e + " refers to conflicting files: " + files);
 			}
 		}
 

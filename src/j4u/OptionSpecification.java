@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 public class OptionSpecification extends ParameterSpecification
 {
@@ -8,7 +8,7 @@ public class OptionSpecification extends ParameterSpecification
 	private String defaultValue;
 
 	public OptionSpecification(String longName, String shortName, String valueRegexp,
-			String defaultValue, String description)
+			Object defaultValue, String description)
 	{
 		super(valueRegexp, description);
 
@@ -21,7 +21,7 @@ public class OptionSpecification extends ParameterSpecification
 
 		this.longName = longName;
 		this.shortName = shortName;
-		this.defaultValue = defaultValue;
+		this.defaultValue = defaultValue == null ? null : defaultValue.toString();
 	}
 
 	public String getShortName()
@@ -41,8 +41,24 @@ public class OptionSpecification extends ParameterSpecification
 
 	public String toString()
 	{
-		return "***" + getLongName() + " = " + getValueRegexp() + "(default= "
-				+ getDefaultValue() + ") " + getDescription() + "***";
+		String s = getLongName();
+
+		if (getShortName() != null)
+		{
+			s += "|" + getShortName();
+		}
+
+		if (getValueRegexp() != null)
+		{
+			s += "=" + getValueRegexp();
+		}
+
+		if (getDefaultValue() != null)
+		{
+			s += " (default=" + getDefaultValue() + ")";
+		}
+
+		return s + ": " + getDescription();
 	}
 
 }

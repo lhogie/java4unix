@@ -1,35 +1,16 @@
-package java4unix.impl;
+package j4u.demo;
 
-import java.util.Collection;
-
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
+import j4u.CommandLine;
 import toools.io.file.Directory;
 import toools.io.file.RegularFile;
 
-public class print_application_files extends J4UScript
+public class print_application_files extends Java4UnixCommand
 {
 
 	public print_application_files(RegularFile f)
 	{
 		super(f);
 		// TODO Auto-generated constructor stub
-	}
-
-	@Override
-	protected void declareOptions(Collection<OptionSpecification> optionSpecifications)
-	{
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected void declareArguments(
-			Collection<ArgumentSpecification> argumentSpecifications)
-	{
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

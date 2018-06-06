@@ -1,21 +1,19 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Collection;
 
+import j4u.CommandLine;
+import j4u.OptionSpecification;
 import toools.collections.Collections;
 import toools.io.file.RegularFile;
 import toools.text.TextUtilities;
 
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
 
 
-
-public class Get_Ip_Addresses extends J4UScript
+public class Get_Ip_Addresses extends Java4UnixCommand
 {
 
     public Get_Ip_Addresses(RegularFile f)
@@ -64,13 +62,6 @@ public class Get_Ip_Addresses extends J4UScript
     {
     }
 
-
-	@Override
-	protected void declareArguments(Collection<ArgumentSpecification> argumentSpecifications)
-	{
-		
-		
-	}
 
 
 	@Override

@@ -1,12 +1,12 @@
-package java4unix.impl;
+package j4u.demo;
 
-import java4unix.CommandLineApplication;
-import java4unix.License;
+import j4u.CommandLineApplication;
+import j4u.License;
 import toools.io.file.RegularFile;
 
-public abstract class J4UScript extends CommandLineApplication
+public abstract class Java4UnixCommand extends CommandLineApplication
 {
-	public J4UScript(RegularFile f)
+	public Java4UnixCommand(RegularFile f)
 	{
 		super(f);
 	}
@@ -26,13 +26,13 @@ public abstract class J4UScript extends CommandLineApplication
 	@Override
 	public final License getLicence()
 	{
-		return License.GPL;
+		return License.ApacheLicenseV2;
 	}
 
 	@Override
 	public final String getYear()
 	{
-		return "2008-2016";
+		return "2008-2018";
 	}
 
 }

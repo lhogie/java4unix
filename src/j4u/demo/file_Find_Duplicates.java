@@ -1,4 +1,4 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,9 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
+import j4u.CommandLine;
 import toools.collections.relation.HashRelation;
 import toools.collections.relation.Relation;
 import toools.io.FileUtilities;
@@ -22,11 +20,18 @@ import toools.io.file.FileFilter;
 import toools.io.file.RegularFile;
 import toools.math.HashMatrix;
 
-public class file_Find_Duplicates extends J4UScript
+public class file_Find_Duplicates extends Java4UnixCommand
 {
 	public file_Find_Duplicates(RegularFile f)
 	{
 		super(f);
+		addOption("--name", "-n", null, null, "search files with same name");
+		addOption("--size", "-s", null, null, "search files with same size");
+		addOption("--content", "-c", null, null, "search files with same content");
+		addOption("--delete", "-d", null, null, "delete duplicates");
+		addOption("--method", "-m", "md5|hash|full", "hash",
+				"method for comparing file contents");
+
 	}
 
 	public static void main(String[] args) throws Throwable
@@ -169,18 +174,10 @@ public class file_Find_Duplicates extends J4UScript
 					@Override
 					public int compare(RegularFile a, RegularFile b)
 					{
-						try
-						{
-							int c = RegularFile.compareFileContentsLexicographically(a,
-									b);
-							m.set(a, b, c == 0);
-							m.set(b, a, c == 0);
-							return c;
-						}
-						catch (IOException e)
-						{
-							throw new IllegalStateException(e.getMessage());
-						}
+						int c = RegularFile.compareFileContentsLexicographically(a, b);
+						m.set(a, b, c == 0);
+						m.set(b, a, c == 0);
+						return c;
 					}
 				});
 
@@ -224,29 +221,6 @@ public class file_Find_Duplicates extends J4UScript
 				printMessage("");
 			}
 		}
-
-	}
-
-	@Override
-	public void declareOptions(Collection<OptionSpecification> specs)
-	{
-		specs.add(new OptionSpecification("--name", "-n", null, null,
-				"search files with same name"));
-		specs.add(new OptionSpecification("--size", "-s", null, null,
-				"search files with same size"));
-		specs.add(new OptionSpecification("--content", "-c", null, null,
-				"search files with same content"));
-		specs.add(new OptionSpecification("--delete", "-d", null, null,
-				"delete duplicates"));
-		specs.add(new OptionSpecification("--method", "-m", "md5|hash|full", "hash",
-				"method for comparing file contents"));
-	}
-
-	@Override
-	protected void declareArguments(
-			Collection<ArgumentSpecification> argumentSpecifications)
-	{
-		argumentSpecifications.add(new ArgumentSpecification(".+", false, "a directory"));
 
 	}
 

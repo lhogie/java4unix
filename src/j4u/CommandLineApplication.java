@@ -1,4 +1,4 @@
-package java4unix;
+package j4u;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -14,20 +14,19 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import toools.ClassContainer;
-import toools.ClassPath;
-import toools.Clazz;
-import toools.ExceptionUtilities;
 import toools.config.Configuration;
+import toools.exceptions.ExceptionUtilities;
 import toools.gui.Utilities;
 import toools.io.file.Directory;
 import toools.io.file.RegularFile;
+import toools.reflect.ClassContainer;
+import toools.reflect.ClassPath;
+import toools.reflect.Clazz;
 import toools.src.Source;
 import toools.text.TextUtilities;
 import toools.util.assertion.Assertions;
@@ -66,9 +65,6 @@ public abstract class CommandLineApplication extends Application
 				"print information about the script code");
 		addOption("--Xdebug", null, null, null,
 				"print the full java stack when an error occurs");
-		declareOptions(cmdLineSpec.getOptionSpecifications());
-		declareArguments(cmdLineSpec.getArgumentsSpecifications());
-		checkProgrammerData();
 		this.launcher = launcher;
 		this.installationDirectory = launcher == null ? null
 				: launcher.getParent().getParent();
@@ -83,8 +79,21 @@ public abstract class CommandLineApplication extends Application
 	}
 
 	public void addOption(String longName, String shortName, String regex,
-			String defaultValue, String description)
+			Object defaultValue, String description)
 	{
+		OptionSpecification alreadyExisting = cmdLineSpec
+				.getOptionSpecification(longName);
+
+		if (alreadyExisting != null)
+			throw new IllegalArgumentException(
+					longName + "' already belongs to " + alreadyExisting);
+
+		alreadyExisting = cmdLineSpec.getOptionSpecification(shortName);
+
+		if (alreadyExisting != null)
+			throw new IllegalArgumentException(
+					shortName + "' already belongs to " + alreadyExisting);
+
 		cmdLineSpec.getOptionSpecifications().add(new OptionSpecification(longName,
 				shortName, regex, defaultValue, description));
 	}
@@ -114,36 +123,12 @@ public abstract class CommandLineApplication extends Application
 	synchronized protected final boolean isOptionSpecified(CommandLine cmdLine,
 			String optionName)
 	{
-		return cmdLine.findOption(cmdLineSpec.getOptionSpecification(optionName))
-				.isSpecifiedOnTheCommandLine();
-	}
-
-	protected final String getOptionValue(CommandLine cmdLine, String optionName)
-	{
 		OptionSpecification spec = cmdLineSpec.getOptionSpecification(optionName);
 
 		if (spec == null)
-			throw new IllegalArgumentException("option does not exist: " + optionName);
+			throw new IllegalArgumentException("no such option: " + optionName);
 
-		Option o = cmdLine.findOption(spec);
-
-		if (spec.getValueRegexp() == null)
-			throw new IllegalStateException(
-					"option " + optionName + " cannot have any value");
-
-		String value = o.getValue();
-
-		if (value != null)
-			return o.getValue();
-
-		if (interactive)
-			return toools.io.Utilities.readUserInput(
-					"Please enter value for '" + optionName + "': ",
-					spec.getValueRegexp());
-
-		throw new InvalidOptionValueException("option " + spec.getLongName()
-				+ " has no value. It must be given a value matching "
-				+ spec.getValueRegexp());
+		return cmdLine.findOption(spec).isSpecifiedOnTheCommandLine();
 	}
 
 	/**
@@ -183,7 +168,7 @@ public abstract class CommandLineApplication extends Application
 		buf.append("\n\nDescription:\n\t");
 		buf.append(getShortDescription());
 		buf.append("\n\nOptions:");
-		buf.append(cmdLineSpec);
+		buf.append(cmdLineSpec.toString(printUtilityOptions));
 
 		buf.append("\n\n");
 		buf.append("Note: arguments are ordered, options are not.\n");
@@ -199,11 +184,12 @@ public abstract class CommandLineApplication extends Application
 
 	public final int run(String... args) throws Throwable
 	{
-		return run(Arrays.asList(args));
+		return run(new ArrayList<>(Arrays.asList(args)));
 	}
 
 	public final int run(List<String> args) throws Throwable
 	{
+		checkProgrammerData();
 		CommandLine cmdLine = new CommandLine(args, cmdLineSpec);
 
 		if (launcher != null)
@@ -243,14 +229,7 @@ public abstract class CommandLineApplication extends Application
 
 			if (file.exists())
 			{
-				try
-				{
-					printMessage(file.getPath() + ":\n" + new String(file.getContent()));
-				}
-				catch (IOException e)
-				{
-					printFatalError("Cannot read configuration file " + file.getPath());
-				}
+				printMessage(file.getPath() + ":\n" + new String(file.getContent()));
 			}
 			else
 			{
@@ -384,12 +363,6 @@ public abstract class CommandLineApplication extends Application
 		}
 	}
 
-	abstract protected void declareOptions(
-			Collection<OptionSpecification> optionSpecifications);
-
-	abstract protected void declareArguments(
-			Collection<ArgumentSpecification> argumentSpecifications);
-
 	public final Directory getJarsDirectory()
 	{
 		return new Directory(getInstallationDirectory(), "jars");
@@ -408,18 +381,15 @@ public abstract class CommandLineApplication extends Application
 	{
 		String t = "";
 		t += "#!/bin/sh\n";
-		t += "\n# this script was generated by Java4unix.\n\n";
+		t += "\n# this script was generated by Java4unix.";
+		t += "\n# DO NOT EDIT.";
+		t += "\n\n";
 		t += "export CLASSPATH=$(find '" + getJarsDirectory().getPath()
 				+ "' -name '*.jar' | tr '\\n' '" + System.getProperty("path.separator")
 				+ "')\n";
-		t += "java " + getVMOptionsAsText() + " " + Run.class.getName() + " "
-				+ getClass().getName() + " \"$0\" \"$@\"";
+		t += "java " + TextUtilities.concatene(getVMOptions(), " ") + " "
+				+ Run.class.getName() + " " + getClass().getName() + " \"$0\" \"$@\"";
 		return t;
-	}
-
-	protected final String getVMOptionsAsText()
-	{
-		return TextUtilities.concatene(getVMOptions(), " ");
 	}
 
 	public abstract int runScript(CommandLine cmdLine) throws Throwable;
@@ -535,7 +505,7 @@ public abstract class CommandLineApplication extends Application
 		this.lastcancellablePrint = msg.toString();
 	}
 
-	protected final void printMessage(PrintStream os, Object msg)
+	protected final synchronized void printMessage(PrintStream os, Object msg)
 	{
 		printMessage(os, msg, 0.5, true);
 	}
@@ -711,6 +681,11 @@ public abstract class CommandLineApplication extends Application
 		return getUserFile(getName() + ".conf");
 	}
 
+	public Directory getUserApplicationDirectory()
+	{
+		return userApplicationDirectory;
+	}
+	
 	public RegularFile getUserFile(String filename)
 	{
 		return userApplicationDirectory.getChildRegularFile(filename);
@@ -807,4 +782,31 @@ public abstract class CommandLineApplication extends Application
 		return dataDirectory.getChildRegularFile(filename);
 	}
 
+	public String getOptionValue(CommandLine cmdLine, String optionName)
+	{
+		OptionSpecification spec = cmdLineSpec.getOptionSpecification(optionName);
+
+		if (spec == null)
+			throw new IllegalArgumentException("option does not exist: " + optionName);
+
+		Option o = cmdLine.findOption(spec);
+
+		if (spec.getValueRegexp() == null)
+			throw new IllegalStateException(
+					"option " + optionName + " cannot have any value");
+
+		String value = o.getValue();
+
+		if (value != null)
+			return o.getValue();
+
+		if (interactive)
+			return toools.io.Utilities.readUserInput(
+					"Please enter value for '" + optionName + "': ",
+					spec.getValueRegexp());
+
+		throw new InvalidOptionValueException("option " + spec.getLongName()
+				+ " has no value. It must be given a value matching "
+				+ spec.getValueRegexp());
+	}
 }

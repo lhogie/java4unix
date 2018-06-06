@@ -1,19 +1,18 @@
-package java4unix.impl;
+package j4u.demo;
 
 import java.io.File;
 import java.util.Collection;
 
+import j4u.ArgumentSpecification;
+import j4u.CommandLine;
+import j4u.OptionSpecification;
 import toools.io.FileUtilities;
 import toools.io.file.RegularFile;
 import toools.text.xml.XMLNode;
 import toools.text.xml.XMLUtilities;
 
-import java4unix.ArgumentSpecification;
-import java4unix.CommandLine;
-import java4unix.OptionSpecification;
 
-
-public class xml_reformat extends J4UScript
+public class xml_reformat extends Java4UnixCommand
 {
 
 	public xml_reformat(RegularFile f)
@@ -42,17 +41,5 @@ public class xml_reformat extends J4UScript
 		return "reformat the given XML";
 	}
 
-	public void declareOptions(Collection<OptionSpecification> specs)
-	{
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected void declareArguments(Collection<ArgumentSpecification> argumentSpecifications)
-	{
-		argumentSpecifications.add(new ArgumentSpecification("file",".+", true, "XML file"));
-		
-	}
 	
 }
