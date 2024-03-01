@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -194,45 +195,43 @@ public abstract class Command {
 	 * Search for a class named "Application" in the package
 	 */
 	protected Application getApplication() {
-		Class<Application> c = Clazz.findClass(getClass().getPackage().getName() + ".Application");
+		try {
+			return (Application) Class.forName(getClass().getPackage().getName() + ".Application").getConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+			return new Application() {
 
-		if (c != null) {
-			return Clazz.makeInstance(c);
-		}
+				@Override
+				public String getYear() {
+					return null;
+				}
 
-		return new Application() {
+				@Override
+				public String getVersion() {
+					return null;
+				}
 
-			@Override
-			public String getYear() {
-				return null;
-			}
+				@Override
+				public License getLicence() {
+					return null;
+				}
 
-			@Override
-			public String getVersion() {
-				return null;
-			}
+				@Override
+				public String getAuthor() {
+					return null;
+				}
 
-			@Override
-			public License getLicence() {
-				return null;
-			}
+				@Override
+				public String getName() {
+					return Command.this.getClass().getPackageName();
+				}
 
-			@Override
-			public String getAuthor() {
-				return null;
-			}
-
-			@Override
-			public String getName() {
-				return Command.this.getClass().getPackageName();
-			}
-
-			@Override
-			protected String getDescription() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
+				@Override
+				protected String getDescription() {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			};		}
 	}
 
 	private final int run(CommandLine cmdLine) throws Throwable {

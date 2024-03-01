@@ -42,4 +42,8 @@ public class props extends Command {
 		spec.addOption("--print-value", "-p", ".+", ".+", "print the value of the given key");
 	}
 
+	public static void main(String[] args) {
+		new props().run(args);
+	}
+
 }

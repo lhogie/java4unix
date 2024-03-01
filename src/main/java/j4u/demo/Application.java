@@ -20,12 +20,11 @@ public abstract class Application extends j4u.Application {
 
 	@Override
 	public String getVersion() {
-		return null;
+		return ":)";
 	}
 
 	@Override
 	public String getName() {
 		return "java4unix";
 	}
-
 }
